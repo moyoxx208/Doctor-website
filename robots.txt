@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://moyoxx208.github.io/Doctor-website/sitemap.xml
