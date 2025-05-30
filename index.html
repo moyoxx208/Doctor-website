@@ -1,1 +1,684 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="احجز موعدك بكل سهولة في عيادة دكتورة نسرين المرسي بالمنصورة. نقدم خدمات حجز مواعيد طبية عبر الإنترنت بشكل سريع ومريح. رقم العيادة: 01096060174. العنوان: المنصورة، قسم ثان، شارع المطافي، أمام برج المستشارين.">
+    <title>عيادة دكتورة نسرين المرسي - حجز مواعيد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8; 
+        }
+        .tab-button {
+            transition: all 0.3s ease-in-out;
+            padding: 0.75rem 1rem; 
+        }
+        .tab-button.active {
+            border-color: #3b82f6; 
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #e0e7ff; 
+            color: #3b82f6;
+        }
+        .time-slot {
+            transition: all 0.25s ease-out;
+            border-width: 1px; 
+        }
+        .time-slot:not(.disabled):hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            border-color: #3b82f6; 
+        }
+        .time-slot.selected {
+            background-image: linear-gradient(to right, #10b981, #059669); 
+            color: white;
+            border-color: #059669;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+        }
+        .time-slot.disabled {
+            background-color: #e5e7eb; 
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6); 
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 25px 30px; 
+            border-radius: 12px; 
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 6px 10px rgba(0,0,0,0.1);
+            transform: scale(0.95);
+            animation: modalAppear 0.3s ease-out forwards;
+        }
+        @keyframes modalAppear {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .loader {
+            border: 5px solid #e5e7eb; 
+            border-top: 5px solid #3b82f6; 
+            border-radius: 50%;
+            width: 50px; 
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+            margin: 25px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .primary-button {
+            background-image: linear-gradient(to right, #2563eb, #1d4ed8); 
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+        .primary-button:hover {
+            background-image: linear-gradient(to right, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(30, 64, 175, 0.3);
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05), 0 3px 6px rgba(0,0,0,0.03);
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+             box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 5px 10px rgba(0,0,0,0.05);
+             transform: translateY(-2px);
+        }
+        .list-item-card {
+             background-color: #f9fafb; 
+             border: 1px solid #e5e7eb;
+             border-radius: 8px;
+             padding: 1rem;
+             transition: all 0.2s ease-in-out;
+        }
+        .list-item-card:hover {
+            border-color: #93c5fd; 
+            box-shadow: 0 2px 5px rgba(147, 197, 253, 0.2);
+        }
 
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100 min-h-screen">
+    <div id="appLoader" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-[1001]">
+        <div class="loader"></div>
+        <p class="text-lg text-gray-700 mt-4 font-semibold">جاري تحميل بيانات العيادة...</p>
+    </div>
+
+    <div id="customModal" class="modal" style="opacity:0;">
+        <div class="modal-content">
+            <p id="modalMessage" class="text-lg mb-6 text-gray-700"></p>
+            <button id="modalCloseButton" class="primary-button text-white font-bold py-2.5 px-6 rounded-lg text-base">
+                حسنًا
+            </button>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <header class="text-center mb-10 py-8 bg-white shadow-xl rounded-2xl overflow-hidden">
+            <div class="relative">
+                 <div class="absolute inset-0 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 opacity-80 transform skew-y-[-1deg] scale-110"></div>
+                 <div class="relative">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight py-4">
+                        عيادة دكتورة نسرين المرسي
+                    </h1>
+                 </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">معرف المستخدم الحالي: <span id="userIdDisplay" class="font-mono bg-gray-100 px-2 py-0.5 rounded">جاري التحميل...</span></p>
+        </header>
+
+        <div class="mb-8 bg-white p-3 shadow-md rounded-xl">
+            <div class="flex border-b-0 justify-center space-x-1 md:space-x-2">
+                <button data-tab="bookAppointmentTab" class="tab-button flex-1 py-3 px-2 text-center font-semibold text-gray-700 hover:bg-blue-100 border-b-2 border-transparent focus:outline-none rounded-md">
+                    حجز موعد جديد
+                </button>
+                <button data-tab="todaysBookingsTab" class="tab-button flex-1 py-3 px-2 text-center font-semibold text-gray-700 hover:bg-blue-100 border-b-2 border-transparent focus:outline-none rounded-md active">
+                    حجوزات اليوم
+                </button>
+                <button data-tab="archiveTab" class="tab-button flex-1 py-3 px-2 text-center font-semibold text-gray-700 hover:bg-blue-100 border-b-2 border-transparent focus:outline-none rounded-md">
+                    الأرشيف
+                </button>
+            </div>
+        </div>
+
+        <div id="tabContent" class="space-y-8">
+            <div id="bookAppointmentTab" class="tab-pane p-6 md:p-8 card hidden">
+                <h2 class="text-3xl font-bold mb-8 text-gray-800 text-center">احجز موعدك لليوم</h2>
+                <div class="mb-6">
+                    <label for="patientName" class="block text-md font-medium text-gray-700 mb-2">اسم المريض:</label>
+                    <input type="text" id="patientName" name="patientName" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-md" placeholder="الرجاء إدخال الاسم ثلاثي">
+                </div>
+                <div class="mb-6">
+                    <p class="block text-md font-medium text-gray-700 mb-3">اختر الوقت المناسب (من 6 مساءً حتى 10 مساءً):</p>
+                    <div id="timeSlotsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <div class="p-3 text-center text-gray-500 col-span-full">جاري تحميل الأوقات المتاحة...</div>
+                    </div>
+                </div>
+                <button id="submitBooking" class="w-full primary-button text-white font-bold py-3.5 px-4 rounded-lg shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition text-lg">
+                    تأكيد الحجز
+                </button>
+            </div>
+
+            <div id="todaysBookingsTab" class="tab-pane p-6 md:p-8 card">
+                <h2 class="text-3xl font-bold mb-8 text-gray-800 text-center">قائمة حجوزات اليوم (<span id="todayDateDisplay"></span>)</h2>
+                <div id="todaysBookingsList" class="space-y-4">
+                    <p class="text-gray-500 text-center py-4">لا توجد حجوزات لهذا اليوم حتى الآن.</p>
+                </div>
+            </div>
+
+            <div id="archiveTab" class="tab-pane p-6 md:p-8 card hidden">
+                <div id="archivePasswordPrompt" class="text-center p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">الرجاء إدخال كلمة المرور للوصول إلى الأرشيف</h3>
+                    <div class="max-w-sm mx-auto">
+                        <input type="password" id="archivePasswordInput" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-md mb-4" placeholder="كلمة المرور">
+                        <button id="archivePasswordSubmit" class="w-full primary-button text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition text-lg">
+                            دخول
+                        </button>
+                        <p id="archivePasswordError" class="text-red-500 text-sm mt-3"></p>
+                    </div>
+                </div>
+
+                <div id="archiveListContainer" class="hidden">
+                    <h2 class="text-3xl font-bold mb-8 text-gray-800 text-center">الأرشيف - الحجوزات السابقة</h2>
+                    <div id="archiveList" class="space-y-4">
+                        <p class="text-gray-500 text-center py-4">البيانات محمية بكلمة مرور.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <footer class="text-center mt-12 py-8 text-sm text-gray-600 bg-white shadow-top rounded-t-xl">
+            <p class="font-semibold text-gray-700">رقم العيادة: <a href="tel:01096060174" class="hover:text-blue-600">01096060174</a></p>
+            <p class="mt-1 text-gray-700">العنوان: المنصورة، قسم ثان، شارع المطافي، أمام برج المستشارين</p>
+            <p class="mt-4 text-gray-500">&copy; <span id="currentYear"></span> عيادة دكتورة نسرين المرسي. جميع الحقوق محفوظة.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot, serverTimestamp, doc, updateDoc, writeBatch, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration and Initialization ---
+        // !!! مهم جداً: استبدل هذا بمعلومات مشروع Firebase الخاص بك !!!
+        // !!! يجب أن تحصل على هذه المعلومات من إعدادات مشروعك في موقع Firebase !!!
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY", // ضع هنا مفتاح API الخاص بك
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com", // ضع هنا نطاق المصادقة الخاص بك
+            projectId: "YOUR_PROJECT_ID", // ضع هنا معرف المشروع الخاص بك
+            storageBucket: "YOUR_PROJECT_ID.appspot.com", // ضع هنا اسم مخزن الملفات
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // ضع هنا معرف مرسل الرسائل
+            appId: "YOUR_APP_ID", // ضع هنا معرف التطبيق الخاص بك
+            measurementId: "YOUR_MEASUREMENT_ID" // هذا اختياري، لمعرفة إحصائيات جوجل أناليتكس
+        };
+        // !!! تأكد من استبدال القيم أعلاه بمعلومات مشروعك الصحيحة !!!
+        // !!! إذا لم تقم بذلك، لن تعمل ميزات الحجز والأرشيف !!!
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        setLogLevel('debug'); 
+
+        const appIdForPath = firebaseConfig.projectId || 'dr-nisreen-clinic-default'; 
+        const appointmentsCollectionPath = `/artifacts/${appIdForPath}/public/data/appointments`;
+
+        // --- Global State ---
+        let userId = null;
+        let currentSelectedTimeSlot = null;
+        const timeSlots = [ 
+            '06:00 مساءً', '06:30 مساءً', '07:00 مساءً', '07:30 مساءً', 
+            '08:00 مساءً', '08:30 مساءً', '09:00 مساءً', '09:30 مساءً'
+        ];
+        let isArchiveUnlocked = false;
+        const ARCHIVE_PASSWORD = "momoyoxx2009$";
+
+
+        // --- UI Elements ---
+        const appLoader = document.getElementById('appLoader');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const patientNameInput = document.getElementById('patientName');
+        const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+        const submitBookingButton = document.getElementById('submitBooking');
+        const todaysBookingsList = document.getElementById('todaysBookingsList');
+        const archiveList = document.getElementById('archiveList');
+        const todayDateDisplay = document.getElementById('todayDateDisplay');
+        const customModal = document.getElementById('customModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        const archivePasswordPrompt = document.getElementById('archivePasswordPrompt');
+        const archivePasswordInput = document.getElementById('archivePasswordInput');
+        const archivePasswordSubmit = document.getElementById('archivePasswordSubmit');
+        const archivePasswordError = document.getElementById('archivePasswordError');
+        const archiveListContainer = document.getElementById('archiveListContainer');
+
+
+        // --- Utility Functions ---
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        function showModal(message) {
+            modalMessage.textContent = message;
+            customModal.style.display = 'flex';
+            setTimeout(() => customModal.style.opacity = '1', 10); 
+        }
+
+        function hideModal() {
+            customModal.style.opacity = '0';
+            setTimeout(() => customModal.style.display = 'none', 300); 
+        }
+        modalCloseButton.addEventListener('click', hideModal);
+
+
+        // --- Tab Navigation ---
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active', 'bg-blue-500', 'text-white', 'shadow-md'));
+                tab.classList.add('active', 'bg-blue-500', 'text-white', 'shadow-md');
+                const targetPaneId = tab.dataset.tab;
+
+                tabPanes.forEach(pane => {
+                    if (pane.id === targetPaneId) {
+                        pane.classList.remove('hidden');
+                        pane.style.animation = 'fadeIn 0.5s ease-out';
+
+                        if (targetPaneId === 'archiveTab') {
+                            if (isArchiveUnlocked) {
+                                archivePasswordPrompt.classList.add('hidden');
+                                archiveListContainer.classList.remove('hidden');
+                                loadArchivedBookings(); 
+                            } else {
+                                archivePasswordPrompt.classList.remove('hidden');
+                                archiveListContainer.classList.add('hidden');
+                                archiveList.innerHTML = '<p class="text-gray-500 text-center py-4">الرجاء إدخال كلمة المرور لعرض الأرشيف.</p>';
+                            }
+                        }
+                    } else {
+                        pane.classList.add('hidden');
+                        pane.style.animation = ''; 
+                    }
+                });
+
+                if (targetPaneId === 'bookAppointmentTab') {
+                    renderTimeSlotsForBooking();
+                }
+            });
+        });
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`;
+        document.head.appendChild(styleSheet);
+
+        // --- Archive Password Logic ---
+        archivePasswordSubmit.addEventListener('click', () => {
+            const enteredPassword = archivePasswordInput.value;
+            if (enteredPassword === ARCHIVE_PASSWORD) {
+                isArchiveUnlocked = true;
+                archivePasswordPrompt.classList.add('hidden');
+                archiveListContainer.classList.remove('hidden');
+                archivePasswordError.textContent = '';
+                archivePasswordInput.value = ''; 
+                loadArchivedBookings(); 
+            } else {
+                archivePasswordError.textContent = 'كلمة المرور غير صحيحة. الرجاء المحاولة مرة أخرى.';
+                archivePasswordInput.value = '';
+            }
+        });
+        
+        // --- Firestore Logic ---
+        async function performDailyStatusUpdate() {
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                console.warn("Firebase not configured. Skipping daily status update.");
+                return;
+            }
+            console.log("Performing daily status update...");
+            const todayStr = getTodayDateString();
+            const appointmentsRef = collection(db, appointmentsCollectionPath);
+            const q = query(appointmentsRef, where("status", "==", "active"));
+            
+            try {
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    console.log("No active appointments found to check for archiving.");
+                    return;
+                }
+                const batch = writeBatch(db);
+                let archivedCount = 0;
+                snapshot.forEach(docSnapshot => {
+                    const bookingData = docSnapshot.data();
+                    if (bookingData.bookingDate && bookingData.bookingDate < todayStr) {
+                        const docRef = doc(db, appointmentsCollectionPath, docSnapshot.id);
+                        batch.update(docRef, { 
+                            status: "archived",
+                            archivedAt: serverTimestamp() 
+                        });
+                        archivedCount++;
+                    }
+                });
+                if (archivedCount > 0) {
+                    await batch.commit();
+                    console.log(`${archivedCount} appointments successfully archived.`);
+                } else {
+                    console.log("No appointments met the criteria for archiving today.");
+                }
+            } catch (error) {
+                console.error("Error during daily status update: ", error);
+            }
+        }
+
+        async function renderTimeSlotsForBooking() {
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                timeSlotsContainer.innerHTML = '<p class="text-red-500 col-span-full text-center py-4">خطأ: إعدادات Firebase غير مكتملة.</p>';
+                return;
+            }
+            timeSlotsContainer.innerHTML = `<div class="p-3 text-center text-gray-500 col-span-full"><div class="loader !w-8 !h-8 !border-4 !mx-auto !my-0"></div> <p class="mt-2">جاري تحميل الأوقات...</p></div>`;
+            const todayStr = getTodayDateString();
+            const appointmentsRef = collection(db, appointmentsCollectionPath);
+            const q = query(appointmentsRef, where("status", "==", "active"));
+
+            try {
+                const querySnapshot = await getDocs(q);
+                const bookedSlotsToday = new Set();
+                querySnapshot.forEach(doc => {
+                    const bookingData = doc.data();
+                    if (bookingData.bookingDate === todayStr) {
+                        bookedSlotsToday.add(bookingData.timeSlot);
+                    }
+                });
+
+                timeSlotsContainer.innerHTML = ''; 
+                if (timeSlots.length === 0) {
+                     timeSlotsContainer.innerHTML = '<p class="text-gray-600 col-span-full text-center py-4">لا توجد أوقات متاحة محددة حاليًا.</p>';
+                     return;
+                }
+
+                timeSlots.forEach(slot => {
+                    const slotButton = document.createElement('button');
+                    slotButton.textContent = slot;
+                    slotButton.classList.add('time-slot', 'p-3.5', 'border', 'rounded-lg', 'shadow-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'font-semibold', 'text-sm');
+                    if (bookedSlotsToday.has(slot)) {
+                        slotButton.classList.add('disabled');
+                        slotButton.disabled = true;
+                    } else {
+                        slotButton.classList.add('bg-white', 'hover:bg-blue-50', 'text-blue-600', 'border-gray-300');
+                        slotButton.addEventListener('click', () => {
+                            if (currentSelectedTimeSlot) {
+                                currentSelectedTimeSlot.classList.remove('selected');
+                                currentSelectedTimeSlot.classList.add('bg-white', 'hover:bg-blue-50', 'text-blue-600');
+                            }
+                            slotButton.classList.add('selected');
+                            slotButton.classList.remove('bg-white', 'hover:bg-blue-50', 'text-blue-600');
+                            currentSelectedTimeSlot = slotButton;
+                        });
+                    }
+                    timeSlotsContainer.appendChild(slotButton);
+                });
+            } catch (error) {
+                console.error("Error fetching booked slots: ", error);
+                timeSlotsContainer.innerHTML = '<p class="text-red-500 col-span-full text-center py-4">خطأ في تحميل الأوقات. حاول مرة أخرى.</p>';
+            }
+        }
+
+        submitBookingButton.addEventListener('click', async () => {
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                showModal("خطأ: لم يتم تكوين Firebase بشكل صحيح. يرجى مراجعة إعدادات Firebase في الكود.");
+                return;
+            }
+            const patientName = patientNameInput.value.trim();
+            if (!patientName) {
+                showModal("الرجاء إدخال اسم المريض.");
+                return;
+            }
+            if (!currentSelectedTimeSlot) {
+                showModal("الرجاء اختيار وقت للموعد.");
+                return;
+            }
+
+            const selectedSlotValue = currentSelectedTimeSlot.textContent;
+            const todayStr = getTodayDateString();
+            
+            submitBookingButton.disabled = true;
+            const originalButtonText = submitBookingButton.textContent;
+            submitBookingButton.innerHTML = `<div class="loader !w-5 !h-5 !border-2 !border-t-white !mx-auto"></div>`;
+
+            const appointmentsRefCheck = collection(db, appointmentsCollectionPath);
+            const qCheck = query(appointmentsRefCheck, where("status", "==", "active"));
+            
+            let slotAlreadyBooked = false;
+            try {
+                const checkSnapshot = await getDocs(qCheck);
+                checkSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.bookingDate === todayStr && data.timeSlot === selectedSlotValue) {
+                        slotAlreadyBooked = true;
+                    }
+                });
+            } catch (error) {
+                console.error("Error checking slot availability:", error);
+                showModal("حدث خطأ أثناء التحقق من توفر الوقت. الرجاء المحاولة مرة أخرى.");
+                submitBookingButton.disabled = false;
+                submitBookingButton.innerHTML = originalButtonText;
+                return;
+            }
+
+            if (slotAlreadyBooked) {
+                showModal("عذرًا، هذا الوقت تم حجزه للتو. الرجاء اختيار وقت آخر.");
+                renderTimeSlotsForBooking(); 
+                submitBookingButton.disabled = false;
+                submitBookingButton.innerHTML = originalButtonText;
+                return;
+            }
+            
+            try {
+                await addDoc(collection(db, appointmentsCollectionPath), {
+                    patientName: patientName,
+                    timeSlot: selectedSlotValue, 
+                    bookingDate: todayStr,
+                    status: "active",
+                    createdAt: serverTimestamp(),
+                    userId: userId || "anonymous" 
+                });
+                showModal("تم الحجز بنجاح!");
+                patientNameInput.value = '';
+                if(currentSelectedTimeSlot) {
+                    currentSelectedTimeSlot.classList.remove('selected');
+                    currentSelectedTimeSlot.classList.add('disabled');
+                    currentSelectedTimeSlot.disabled = true;
+                }
+                currentSelectedTimeSlot = null;
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showModal("حدث خطأ أثناء الحجز. الرجاء المحاولة مرة أخرى.");
+            } finally {
+                submitBookingButton.disabled = false;
+                submitBookingButton.innerHTML = originalButtonText;
+            }
+        });
+
+        function loadTodaysBookings() {
+             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                todaysBookingsList.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في الاتصال بقاعدة البيانات. يرجى مراجعة إعدادات Firebase في الكود.</p>';
+                return;
+            }
+            const todayStr = getTodayDateString();
+            todayDateDisplay.textContent = todayStr;
+            const appointmentsRef = collection(db, appointmentsCollectionPath);
+            const q = query(appointmentsRef, where("status", "==", "active"));
+
+            onSnapshot(q, (querySnapshot) => {
+                const bookings = [];
+                querySnapshot.forEach((doc) => {
+                    const bookingData = doc.data();
+                    if (bookingData.bookingDate === todayStr) {
+                        bookings.push({ id: doc.id, ...bookingData });
+                    }
+                });
+                
+                todaysBookingsList.innerHTML = ''; 
+                if (bookings.length === 0) {
+                    todaysBookingsList.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد حجوزات لهذا اليوم حتى الآن.</p>';
+                } else {
+                    bookings.sort((a, b) => (a.timeSlot || "").localeCompare(b.timeSlot || ""));
+                    bookings.forEach(booking => {
+                        const div = document.createElement('div');
+                        div.className = 'list-item-card';
+                        div.innerHTML = `
+                            <p class="font-semibold text-lg text-blue-700">${booking.patientName}</p>
+                            <p class="text-sm text-gray-600">الوقت: <span class="font-medium">${booking.timeSlot}</span></p>
+                        `;
+                        todaysBookingsList.appendChild(div);
+                    });
+                }
+                if (document.getElementById('bookAppointmentTab').classList.contains('hidden') === false) {
+                    renderTimeSlotsForBooking();
+                }
+            }, (error) => {
+                console.error("Error fetching today's bookings: ", error);
+                todaysBookingsList.innerHTML = '<p class="text-red-500 text-center py-4">حدث خطأ في تحميل حجوزات اليوم.</p>';
+            });
+        }
+
+        function loadArchivedBookings() {
+            if (!isArchiveUnlocked) {
+                archiveList.innerHTML = '<p class="text-gray-500 text-center py-4">الرجاء إدخال كلمة المرور لعرض الأرشيف.</p>';
+                return;
+            }
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                archiveList.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في الاتصال بقاعدة البيانات. يرجى مراجعة إعدادات Firebase في الكود.</p>';
+                return;
+            }
+
+            archiveList.innerHTML = '<div class="p-3 text-center text-gray-500 col-span-full"><div class="loader !w-8 !h-8 !border-4 !mx-auto !my-0"></div> <p class="mt-2">جاري تحميل الأرشيف...</p></div>';
+
+            const appointmentsRef = collection(db, appointmentsCollectionPath);
+            const q = query(appointmentsRef, where("status", "==", "archived")); 
+
+            onSnapshot(q, (querySnapshot) => {
+                if (!isArchiveUnlocked) return; 
+
+                const archived = [];
+                querySnapshot.forEach((doc) => {
+                    archived.push({ id: doc.id, ...doc.data() });
+                });
+                
+                archiveList.innerHTML = ''; 
+                if (archived.length === 0) {
+                    archiveList.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد حجوزات مؤرشفة حتى الآن.</p>';
+                } else {
+                    archived.sort((a, b) => {
+                        const dateA = a.bookingDate || "0000-00-00";
+                        const dateB = b.bookingDate || "0000-00-00";
+                        const dateComparison = dateB.localeCompare(dateA);
+                        if (dateComparison !== 0) return dateComparison;
+                        const timeA = a.timeSlot || "00:00 صباحًا";
+                        const timeB = b.timeSlot || "00:00 صباحًا";
+                        return timeA.localeCompare(timeB);
+                    });
+                    archived.forEach(booking => {
+                        const div = document.createElement('div');
+                        div.className = 'list-item-card bg-white'; 
+                        div.innerHTML = `
+                            <p class="font-semibold text-md text-gray-700">${booking.patientName}</p>
+                            <p class="text-xs text-gray-500">التاريخ: ${booking.bookingDate || 'غير محدد'} | الوقت: ${booking.timeSlot || 'غير محدد'}</p>
+                        `;
+                        archiveList.appendChild(div);
+                    });
+                }
+            }, (error) => {
+                if (!isArchiveUnlocked) return;
+                console.error("Error fetching archived bookings: ", error);
+                archiveList.innerHTML = '<p class="text-red-500 text-center py-4">حدث خطأ في تحميل الأرشيف.</p>';
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            appLoader.style.display = 'flex'; 
+            if (user) {
+                userId = user.uid;
+                userIdDisplay.textContent = userId;
+
+                if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY" || !firebaseConfig.projectId) {
+                    showModal("تحذير هام: إعدادات Firebase غير مكتملة في الكود! يرجى مراجعة المطور لتحديث متغير 'firebaseConfig' بمعلومات مشروعك الصحيحة من موقع Firebase. العديد من ميزات الموقع لن تعمل بشكل صحيح.");
+                    appLoader.style.display = 'none';
+                    todaysBookingsList.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في الإعدادات. يرجى تكوين Firebase بشكل صحيح في الكود.</p>';
+                    archiveList.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في الإعدادات. يرجى تكوين Firebase بشكل صحيح في الكود.</p>';
+                    // إخفاء باقي العناصر التي تعتمد على Firebase أو عرض رسالة خطأ عامة
+                    document.getElementById('bookAppointmentTab').innerHTML = '<p class="text-red-500 text-center py-4">نظام الحجز معطل حاليًا بسبب خطأ في الإعدادات.</p>';
+                    return; 
+                }
+
+                try {
+                    await performDailyStatusUpdate(); 
+                } catch (e) {
+                    console.error("Failed initial daily status update:", e);
+                } finally {
+                    loadTodaysBookings();
+                    renderTimeSlotsForBooking(); 
+                    
+                    tabs.forEach(t => t.classList.remove('active', 'bg-blue-500', 'text-white', 'shadow-md'));
+                    document.querySelector('button[data-tab="todaysBookingsTab"]').classList.add('active', 'bg-blue-500', 'text-white', 'shadow-md');
+                    tabPanes.forEach(p => p.classList.add('hidden'));
+                    document.getElementById('todaysBookingsTab').classList.remove('hidden');
+                    
+                    archivePasswordPrompt.classList.remove('hidden');
+                    archiveListContainer.classList.add('hidden');
+                    archiveList.innerHTML = '<p class="text-gray-500 text-center py-4">البيانات محمية بكلمة مرور.</p>';
+                    appLoader.style.display = 'none'; 
+                }
+            } else {
+                console.log("User is signed out. Attempting to sign in...");
+                 if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY" || !firebaseConfig.projectId) {
+                    showModal("خطأ فادح: إعدادات Firebase مفقودة أو غير صحيحة في الكود. لا يمكن تشغيل التطبيق. يرجى الاتصال بمطور الموقع.");
+                    appLoader.style.display = 'none';
+                    return;
+                }
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Error during anonymous sign in: ", error);
+                    userIdDisplay.textContent = "خطأ في المصادقة";
+                    showModal("حدث خطأ في الاتصال. لا يمكن تحميل بيانات العيادة.");
+                    appLoader.style.display = 'none'; 
+                }
+            }
+        });
+    </script>
+</body>
+</html>
